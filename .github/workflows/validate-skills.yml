@@ -1,0 +1,35 @@
+name: Validate Skills
+
+on:
+  push:
+    paths:
+      - "skills/**"
+      - "scripts/validate-skill.sh"
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/validate-skill.sh"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate skill frontmatter
+        run: |
+          FAIL=0
+          for skill in skills/*/; do
+            name="$(basename "$skill")"
+            echo "::group::Validating $name"
+            if bash scripts/validate-skill.sh "$skill"; then
+              echo "✅ $name OK"
+            else
+              echo "❌ $name falhou na validação"
+              FAIL=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $FAIL
